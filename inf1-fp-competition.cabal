@@ -1,0 +1,9 @@
+name: mandelbrot
+version: 0.0.1
+cabal-version: >= 1.2
+build-type: Simple
+
+executable mandelbrot
+    main-is: main.hs
+    build-depends: base,
+                   GLUT
