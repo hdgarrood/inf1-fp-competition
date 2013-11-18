@@ -65,7 +65,7 @@ type C = Complex GLfloat
 
 -- Is a complex number in the Mandelbrot set?
 isMandelbrot :: C -> Int -> Bool
-isMandelbrot c maxIterations = any ((> 2) . magnitude) results
+isMandelbrot c maxIterations = all ((< 2) . magnitude) results
     where
         f x     = x^2 + c
         series  = iterate f 0
