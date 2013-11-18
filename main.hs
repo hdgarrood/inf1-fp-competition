@@ -1,6 +1,9 @@
 module Main where
 
 import Graphics.UI.GLUT
+import Data.Complex
+
+import Vec2
 
 windowWidth  = 640
 windowHeight = 480
@@ -16,31 +19,8 @@ main = do
 display :: DisplayCallback
 display = do
     clear [ColorBuffer]
-    plot ((0,0), (255,255)) testPlotFunc
+    plot ((-2,1), (1,-1)) testPlotFunc
     flush
-
--- top-right and bottom-left co-ordinates of the rectangular plot area
-type Vec2 = (GLfloat, GLfloat)
-
-vecAdd :: Vec2 -> Vec2 -> Vec2
-vecAdd (a,b) (c,d) = (a+c, b+d)
-
-vecSub :: Vec2 -> Vec2 -> Vec2
-vecSub a b = a `vecAdd` (vecMult (-1) b)
-
--- scalar multiplication.
-vecMult :: GLfloat -> Vec2 -> Vec2
-vecMult k (a,b) = (k*a, k*b)
-
-vecDot :: Vec2 -> Vec2 -> GLfloat
-vecDot (a,b) (c,d) = (a*c) + (b*d)
-
-vecLength :: Vec2 -> GLfloat
-vecLength a = sqrt $ a `vecDot` a
-
--- turn a vector into a unit vector in the same direction
-normalise :: Vec2 -> Vec2
-normalise a = vecMult (1 / vecLength a) a
 
 type PlotArea = (Vec2, Vec2)
 
@@ -68,8 +48,25 @@ windowCoords = [ (x, y) | x <- values, y <- values ]
           step   = 0.002
 
 testPlotFunc :: Vec2 -> Color3 GLfloat
-testPlotFunc vec = Color3 a' b' 0
+testPlotFunc vec =
+    if isMandelbrot z iters
+        then black
+        else purple
     where
-        -- scale to length 0.5
-        (a,  b)  = 0.5 `vecMult` (normalise vec)
-        (a', b') = (a, b) `vecAdd` (0.5, 0.5)
+        z      = toComplex vec
+        black  = Color3 0 0 0
+        purple = Color3 0.7 0.1 1
+        iters  = 3
+
+toComplex :: Vec2 -> C
+toComplex (a, b) = a :+ b
+
+type C = Complex GLfloat
+
+-- Is a complex number in the Mandelbrot set?
+isMandelbrot :: C -> Int -> Bool
+isMandelbrot c maxIterations = any ((> 2) . magnitude) results
+    where
+        f x     = x^2 + c
+        series  = iterate f 0
+        results = take maxIterations series
