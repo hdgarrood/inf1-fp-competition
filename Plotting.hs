@@ -1,5 +1,6 @@
-module Plotting (plot, PlotArea) where
+module Plotting where
 
+import Data.Int
 import Graphics.UI.GLUT
 
 import Vec2
@@ -15,8 +16,8 @@ translateRectangle rect1 rect2 vec = (x', y')
         ((r2x1, r2y1), (r2x2, r2y2)) = rect2
 
         (x, y) = vec
-        x'     = r2x1 + ((x - r1x1) * (r2x2 - r2x1) / r1x2 - r1x1)
-        y'     = r2y1 + ((y - r1y1) * (r2y2 - r2y1) / r1y2 - r1y1)
+        x'     = r2x1 + ((x - r1x1) * (r2x2 - r2x1) / (r1x2 - r1x1))
+        y'     = r2y1 + ((y - r1y1) * (r2y2 - r2y1) / (r1y2 - r1y1))
 
 type PlotArea = Rectangle
 plot :: PlotArea -> (Vec2 -> Color3 GLfloat) -> IO ()
@@ -36,6 +37,13 @@ windowRectangle = ((-1,1),(1,-1))
 windowToPlane :: PlotArea -> Vec2 -> Vec2
 windowToPlane = translateRectangle windowRectangle
 
+-- Window is square; height = width
+windowWidthHeight :: Int32
+windowWidthHeight = 800
+
+windowWidth = windowWidthHeight
+windowHeight = windowWidthHeight
+
 -- A list of all the points to render
 windowCoords :: [Vec2]
 windowCoords = [ (x, y) | x <- values, y <- values ]
@@ -43,4 +51,4 @@ windowCoords = [ (x, y) | x <- values, y <- values ]
         values = takeWhile (<= max) [min, min+step..]
         max    = 1
         min    = -1
-        step   = 0.002
+        step   = 1 / (fromIntegral windowWidth)
