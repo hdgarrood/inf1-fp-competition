@@ -7,8 +7,9 @@ patterns slowly become visible.
 
 If you're not familiar with the Mandelbrot set, it is the set of all complex
 numbers 'c' for which its series never gives a number with a magnitude greater
-than 2, where the series is given by z(n+1) = z(n) ^ 2 + c. That is, to get the
-next term, square the last one, and add c (the number you started with).
+than 2, where the series is given by z(n+1) = z(n) ^ 2 + c; z(0) = 0. That is,
+start with 0, and to get the next term, square the last one, and add c (the
+number you started with).
 
 On to the code.
 
