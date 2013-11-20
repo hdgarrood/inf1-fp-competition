@@ -6,8 +6,12 @@ build-type: Simple
 executable mandelbrot
     main-is: main.hs
     hs-source-dirs: src
-    -- Specify versions exactly (except for base) in order to match DICE
+    ghc-options: -O2 -threaded -rtsopts -eventlog 
+    -- Specify versions exactly where possible in order to match DICE
     build-depends: base,
+                   time,
+                   old-locale,
+                   filepath,
                    directory   == 1.2.0.1,
                    parallel    == 3.2.0.3,
                    vector      == 0.10.0.1,
