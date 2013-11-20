@@ -12,13 +12,20 @@ import Vec2
 
 main :: IO ()
 main = forM_ (zip [0,1..] images) $ (\(x, img) -> do
-    writePng (nameFrom x) img)
+    writePng (nameFrom x) img
+    showProgress x)
     where
         nameFrom :: Int -> String
         nameFrom x = "output/frame" ++ (printf "%05d" x) ++ ".png"
-        images = take 100 $ magnifiedRender
-                                (640, 480)
-                                wholeMandelbrot
-                                target
-                                (mandelbrot 100)
-        target = 0.001643721971154 :+ 0.822467633298876
+
+        images = take numFrames $ magnifiedRender
+                                    (320, 240)
+                                    wholeMandelbrot
+                                    target
+                                    (mandelbrot 1000)
+        target = (-0.7321919) :+ 0.2326958
+        numFrames = 100
+
+        showProgress :: Int -> IO ()
+        showProgress x = putStrLn $
+            printf "Rendering (%d / %d) ...    " x numFrames

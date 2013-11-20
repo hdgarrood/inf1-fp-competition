@@ -24,7 +24,7 @@ plusMinus c v = (c' `vecAdd` v, c' `vecSub` v)
 magnifiedBit :: PlotArea
 magnifiedBit = justALittleBit c
     where
-        c = 0.001643721971154 :+ 0.822467633298876
+        c = 0.7381919 :+ 0.2326958
 
 -- Take a PlotArea and a complex number, and return an infinite list of plot
 -- areas, produced by zooming in on that number.
@@ -41,7 +41,7 @@ magnify (a :+ b) ((x1, y1), (x2, y2)) = nextArea : magnify (a :+ b) nextArea
                 second = first + l
 
         -- the ratio of one iteration's width (and height) to the next
-        ratio = 0.95
+        ratio = 0.80
         nextArea = ((x3, y3), (x4, y4))
 
 
