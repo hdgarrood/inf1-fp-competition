@@ -55,6 +55,7 @@ mandelbrot' maxIters c = colour
     where
         f       = (\z -> z^2 + c)
         series  = iterate f 0
-        escape  = escapeTime ((> 2) . magnitude) series
+        results = take maxIters series
+        escape  = escapeTime ((> 2) . magnitude) results
         palette = defaultPalette
         colour  = colourise palette escape
