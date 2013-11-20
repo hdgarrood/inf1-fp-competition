@@ -7,4 +7,5 @@ executable mandelbrot
     main-is: main.hs
     hs-source-dirs: src
     build-depends: base,
-                   GLUT
+                   JuicyPixels == 3.1.1.1,
+                   vector      == 0.10.9.1

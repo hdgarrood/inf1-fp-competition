@@ -1,24 +1,24 @@
-module Mandelbrot where
+module Fractals where
 
 import Data.Complex
-import Graphics.UI.GLUT
+import Codec.Picture
 
 import Vec2
 
-mandelbrot :: Int -> Vec2 -> Color3 GLfloat
+type C = Complex Double
+
+mandelbrot :: Int -> Vec2 -> PixelRGB8
 mandelbrot maxIters vec =
     if isMandelbrot z maxIters
         then black
         else purple
     where
         z      = toComplex vec
-        black  = Color3 0 0 0
-        purple = Color3 0.7 0.1 1
+        black  = PixelRGB8 0 0 0
+        purple = PixelRGB8 200 25 255 
 
 toComplex :: Vec2 -> C
 toComplex (a, b) = a :+ b
-
-type C = Complex GLfloat
 
 -- Is a complex number in the Mandelbrot set?
 isMandelbrot :: C -> Int -> Bool
