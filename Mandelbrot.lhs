@@ -253,7 +253,7 @@ We're nearly there! There are a few more values we need to set first, though.
 How many frames should we render?
 
 > numFrames :: Int
-> numFrames = 3
+> numFrames = 120
 
 What number should we zoom in on?
 
