@@ -59,9 +59,6 @@ main = do
         getOutputDir = fmap (formatTime defaultTimeLocale "output/%y%m%d-%H%M%S")
                         getCurrentTime
 
-        frameName :: Int -> FilePath
-        frameName x = "frame" ++ (printf "%05d" x) ++ ".png"
-
         images :: [Image PixelRGB8]
         images = take numFrames $
             magnifiedRender
@@ -75,23 +72,12 @@ main = do
         images' :: [Image PixelRGB8]
         images' = images `using` (parList rdeepseq)
 
-        showProgress :: Int -> IO ()
-        showProgress x = putStrLn $
-            printf "Rendering (%d / %d) ...    " x numFrames
-
         writeToDisk :: FilePath -> (Int, Image PixelRGB8) -> IO ()
         writeToDisk outputDir (x, img) = do
             writePng (outputDir </> frameName x) img
-            putStrLn $ printf "Rendered: frame %d"
+            putStrLn $ printf "Rendered: frame %d" x
+            where
+                frameName x = "frame" ++ (printf "%05d" x) ++ ".png"
 
         prepareOutputDir :: FilePath -> IO ()
         prepareOutputDir = createDirectory
-
-        confirm :: String -> IO Bool
-        confirm question = do
-            putStr $ question ++ " [y/n] "
-            ch <- getChar
-            return $ case ch of
-                'y' -> True
-                'Y' -> True
-                _   -> False
