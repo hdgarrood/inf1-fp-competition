@@ -19,12 +19,34 @@ import Fractals
 import Vec2
 
 -- Rendering options
+-- ============================================
+-- Number of frames to render
 numFrames :: Int
 numFrames = 20
 
--- the complex number to zoom in on
+-- The complex number to zoom in on
 target :: C
 target = (-0.743643884) :+ 0.131825909
+
+-- The dimensions of the image to produce
+imageDimensions :: ImageDimensions
+imageDimensions = (320, 240)
+
+-- Maximum Mandelbrot iterations
+maxIterations :: Int
+maxIterations = 2000
+
+-- Value at which to stop iterating. If a complex number's magnitude does not
+-- reach the square root of this value after the chosen maximum iterations, it
+-- is treated as a member of the Mandelbrot set and coloured black.
+bailoutRadius :: Double
+bailoutRadius = 2 ** 16
+
+-- the ratio of one iteration's width (and height) to the next. Should be
+-- between 0 and 1 for zooming in; probably nearer to 1 than 0.
+magnificationRatio :: Double
+magnificationRatio = 0.8
+-- ============================================
 
 main :: IO ()
 main = do
@@ -42,10 +64,11 @@ main = do
         images :: [Image PixelRGB8]
         images = take numFrames $
             magnifiedRender
-                (320, 240)
+                magnificationRatio
+                imageDimensions
                 wholeMandelbrot
                 target
-                (mandelbrot 2000)
+                (mandelbrot maxIterations)
 
         -- Same as images, but evaluated in parallel
         images' :: [Image PixelRGB8]

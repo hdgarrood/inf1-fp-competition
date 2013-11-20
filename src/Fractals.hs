@@ -98,10 +98,9 @@ retrieve cp x = cp V.! x'
         x' = x `mod` V.length cp
 
 -- mandelbrot
-mandelbrot :: Int -> Vec2 -> PixelRGB8
-mandelbrot maxIters vec = mandelbrot' bailoutRadius maxIters $ toComplex vec
-    where
-        bailoutRadius = 2 ** 16
+mandelbrot :: Double -> Int -> Vec2 -> PixelRGB8
+mandelbrot bailoutRadius maxIters vec =
+    mandelbrot' bailoutRadius maxIters $ toComplex vec
 
 mandelbrot' :: Double -> Int -> C -> PixelRGB8
 mandelbrot' bailoutRadius maxIters c = colour
