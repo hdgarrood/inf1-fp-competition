@@ -15,7 +15,18 @@ On to the code.
 > import Data.Complex
 > import Data.Vector (Vector)
 > import qualified Data.Vector as V
+> import Data.Time.Clock
+> import Data.Time.Format
 > import Codec.Picture
+> import Control.Monad
+> import Control.Concurrent
+> import Control.Parallel.Strategies
+> import Control.DeepSeq
+> import System.FilePath
+> import System.Directory
+> import System.Locale
+> import System.Exit
+> import Text.Printf
 
 The first decision to make is the type we're using for complex numbers.
 Luckily, the Data.Complex module does most of the work for us, but it's up to
@@ -75,13 +86,23 @@ I chose these polynomials so that two adjacent colours in the palette will not,
 in most cases, look similar. The chaos of the colours goes well with the chaos
 of the Mandelbrot set which they're depicting.
 
-> colourPalette :: ColourPalette
-> colourPalette = makeColourPalette 1000
+> palette :: ColourPalette
+> palette = makeColourPalette 1000
 
-1000 colours ought to be enough. We now need a function to combine a colour
-palette and an escape time to produce a colour. The function that follows is
-called the 'Normalised Iteration Count' colouring algorithm, apparently. I
-didn't have time to read up on it properly but it's on Wikipedia.
+1000 colours ought to be enough. However, what if the maximum number of
+iterations is larger than this, and we try to take more colours than there are
+in our colour palette? Let's define a new function to alleviate this. If we
+just take the value modulus the number of colours we have, we'll always be ok.
+
+> retrieve :: ColourPalette -> Int -> PixelRGB8
+> retrieve cp x = cp V.! x'
+>     where
+>         x' = x `mod` V.length cp
+
+We now need a function to combine a colour palette and an escape time to
+produce a colour. The function that follows is called the 'Normalised Iteration
+Count' colouring algorithm, apparently. I didn't have time to read up on it
+properly but it's on Wikipedia.
 
 > colourise :: ColourPalette -> Either () (Int, C) -> PixelRGB8
 > colourise _  (Left ())      = PixelRGB8 0 0 0
@@ -93,6 +114,25 @@ didn't have time to read up on it properly but it's on Wikipedia.
 >         c2 = retrieve cp (n+1)
 >         frac = (fromIntegral $ n + 1) - nu
 
+This function creates a colour by interpolating between two colours in the
+palette. The interpolateColour function is defined below. It uses another
+function, linearInterpolate, which just returns a value which is between x1 and
+x2, where 'frac' is the distance along the line between them.
+
+> linearInterpolate :: RealFrac a => a -> a -> a -> a
+> linearInterpolate x1 x2 frac = x1 + (frac * (x2 - x1))
+>
+> interpolateColour :: RealFrac a => PixelRGB8 -> PixelRGB8 -> a -> PixelRGB8
+> interpolateColour (PixelRGB8 r1 g1 b1)
+>                   (PixelRGB8 r2 g2 b2)
+>                   frac =
+>     PixelRGB8 r g b
+>     where
+>         li x y = floor . linearInterpolate (fromIntegral x) (fromIntegral y)
+>         r = li r1 r2 frac
+>         g = li g1 g2 frac
+>         b = li b1 b2 frac
+
 We now have everything we need to make our mandelbrot function!
 
 It will take the maximum iterations and the bailout radius as parameters and
@@ -101,13 +141,19 @@ gives us a colour.
 
 > mandelbrot :: Double -> Int -> C -> PixelRGB8
 > mandelbrot bailoutRadius maxIters c = colour
-> where
->     f       = (\z -> z^2 + c)
->     series  = iterate f 0
->     results = take maxIters series
->     escaped = escape ((> bailoutRadius) . magnitudesq) results
->     palette = defaultPalette
->     colour  = colourise palette escaped
+>     where
+>         f       = (\z -> z^2 + c)
+>         series  = iterate f 0
+>         results = take maxIters series
+>         escaped = escape ((> bailoutRadius) . magnitudesq) results
+>         colour  = colourise palette escaped
+
+What's that function, magnitudesq? The idea is that it's easier to compute the
+square of the magnitude that the magnitude itself; we don't want to do any
+unnecessary square rooting.
+
+> magnitudesq :: Num a => Complex a -> a
+> magnitudesq (a :+ b) = a*a + b*b
 
 Now we need to think about how to generate the image. For this, let's have some
 more type synonyms. A type representing a rectangle in the complex plane will
@@ -162,3 +208,127 @@ purpose.
 > 
 >         renderPixel :: Int -> Int -> PixelRGB8
 >         renderPixel x y = f . translate . intTupleToC $ (x, y)
+
+Now we need to implement the magnification. We'll start with a function
+'magnify,' which takes a magnification ratio, a complex number to zoom in on,
+and a starting plot area, and returns an infinite list of smaller and smaller
+rectangles, such that if we look at them all in order, it will appear that
+we're zooming in towards the given number.
+
+> magnify :: Double -> C -> PlotArea -> [PlotArea]
+> magnify ratio (a :+ b) (x1 :+ y1, x2 :+ y2) =
+>     nextArea : magnify ratio (a :+ b) nextArea
+>     where
+>         x3 :+ x4 = go x1 x2 a
+>         y3 :+ y4 = go y1 y2 b
+> 
+>         go a b c = first :+ second
+>             where
+>                 l      = ratio * (b - a)
+>                 first  = c - (l * (c - a) / (b - a))
+>                 second = first + l
+> 
+>         nextArea = (x3 :+ y3, x4 :+ y4)
+
+We use linear interpolation again at each stage to create a new rectangle,
+which should have a width equal to the width of the previous rectangle
+multiplied by the magnification ratio.
+
+Given this, it's not difficult to implement a magnifying version of 'render'
+which returns a list of images instead of just a single one.
+
+> magnifiedRender :: Double           -- magnification ratio
+>                 -> ImageDimensions  -- dimensions of produced image
+>                 -> PlotArea         -- initial plotting area
+>                 -> C                -- a point in complex plane to zoom in on
+>                 -> RenderFunction
+>                 -> [Image PixelRGB8]
+> magnifiedRender ratio dims initialArea z f =
+>     map (\area -> render dims area f) areas
+>     where
+>         areas = magnify ratio z initialArea
+
+We're nearly there! There are a few more values we need to set first, though.
+
+How many frames should we render?
+
+> numFrames :: Int
+> numFrames = 3
+
+What number should we zoom in on?
+
+> target :: C
+> target = (-0.743643884) :+ 0.131825909
+
+How large should our image be?
+
+> imageDimensions :: ImageDimensions
+> imageDimensions = (320, 240)
+
+How quickly should we zoom in?
+
+> magnificationRatio :: Double
+> magnificationRatio = 0.8
+
+What should we start off looking at? (This is an easy one; the whole set,
+obviously!)
+
+> wholeMandelbrot :: PlotArea
+> wholeMandelbrot = ((-2) :+ 1.5, 1 :+ (-1.5))
+
+That's everything we need to create our list of images.
+
+> images :: [Image PixelRGB8]
+> images = take numFrames $
+>     magnifiedRender
+>         magnificationRatio
+>         imageDimensions
+>         wholeMandelbrot
+>         target
+>         (mandelbrot bailoutRadius maxIterations)
+
+"But wait!" I hear you cry. "Isn't Haskell supposed to be really good at
+parallelizing computations?" Well, yeah. Don't worry -- we'll be using as many
+cores as we have available. We just need a function to evaluate all the
+elements of a list in parallel.
+
+> parRnfList :: NFData a => Strategy [a]
+> parRnfList []     = return []
+> parRnfList (x:xs) = do
+>     x'  <- rpar (force x)
+>     xs' <- parRnfList xs
+>     return $ x' : xs'
+
+And now, we tell Haskell that this is how we'd like our images to be evaluated:
+
+> images' :: [Image PixelRGB8]
+> images' = images `using` parRnfList
+
+(Isn't it awesome that we've parallelized all that by just adding an extra 7
+lines to our previously sequential code?)
+
+Now we just need a function to write an image to a file on the disk. Note that
+this function should take an integer as well as an image, so that we know where
+in the sequence it comes. JuicyPixels takes care of most of this for us, with
+its 'writePng' function.
+
+> writeToDisk :: FilePath -> (Int, Image PixelRGB8) -> IO ()
+> writeToDisk outputDir (x, img) = do
+>     writePng (outputDir </> frameName x) img
+>     putStrLn $ printf "Rendered: frame %d" x
+>     where
+>         frameName x = "frame" ++ (printf "%05d" x) ++ ".png"
+
+Finally, we implement main.
+
+> main :: IO ()
+> main = do
+>     dir <- getOutputDir
+>     createDirectory dir
+>     mapM_ (writeToDisk dir) (zip [0,1..] images')
+>     where
+>         getOutputDir :: IO FilePath
+>         getOutputDir =
+>             fmap (formatTime defaultTimeLocale "output/%y%m%d-%H%M%S")
+>                 getCurrentTime
+> 

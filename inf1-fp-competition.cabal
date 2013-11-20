@@ -4,8 +4,7 @@ cabal-version: >= 1.2
 build-type: Simple
 
 executable mandelbrot
-    main-is: main.hs
-    hs-source-dirs: src
+    main-is: Mandelbrot.lhs
     ghc-options: -O2 -threaded -rtsopts -eventlog
     -- Ensure these versions appear on DICE machines
     build-depends: base         >= 4 && < 5,
