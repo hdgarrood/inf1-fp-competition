@@ -50,6 +50,7 @@ magnificationRatio = 0.8
 
 main :: IO ()
 main = do
+    reportParallelism
     dir <- getOutputDir
     prepareOutputDir dir
     putStrLn "Rendering..."
@@ -81,3 +82,8 @@ main = do
 
         prepareOutputDir :: FilePath -> IO ()
         prepareOutputDir = createDirectory
+
+        reportParallelism :: IO ()
+        reportParallelism = do
+                n <- getNumCapabilities
+                putStrLn $ printf "Running using %d capabilities." n

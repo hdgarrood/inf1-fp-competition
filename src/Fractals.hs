@@ -28,20 +28,8 @@ makePolyColourPalette len = V.fromList $ take len $ map toColour [1,2..]
             ((x^2 - 6*x)   `mod` 255)
             ((x^3 - 2*x^2) `mod` 255)
 
-makeGradientColourPalette :: PixelRGB8 -> PixelRGB8 -> Int -> ColourPalette
-makeGradientColourPalette c1 c2 len = V.fromList $ map toColour values
-    where
-        toColour = interpolateColour c1 c2
-        values   = takeWhile (<= 1) [0,step..]
-        step     = 1 / (fromIntegral len)
-
-
 defaultPalette :: ColourPalette
-defaultPalette = makePolyColourPalette 10000
-    --makeGradientColourPalette
-    --(PixelRGB8 100 255 255)
-    --(PixelRGB8 50 50 100)
-    --10000
+defaultPalette = makePolyColourPalette 1000
 
 toComplex :: Vec2 -> C
 toComplex (a, b) = a :+ b

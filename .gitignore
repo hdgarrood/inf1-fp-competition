@@ -2,3 +2,4 @@
 dist
 main
 output/*
+mandelbrot.eventlog
