@@ -16,7 +16,8 @@ wholeMandelbrot = ((-2, 1), (1, -1))
 -- Take a PlotArea and a complex number, and return an infinite list of plot
 -- areas, produced by zooming in on that number.
 magnify :: Double -> C -> PlotArea -> [PlotArea]
-magnify (a :+ b) ((x1, y1), (x2, y2)) = nextArea : magnify (a :+ b) nextArea
+magnify ratio (a :+ b) ((x1, y1), (x2, y2)) =
+    nextArea : magnify ratio (a :+ b) nextArea
     where
         (x3, x4) = go x1 x2 a
         (y3, y4) = go y1 y2 b
@@ -28,7 +29,6 @@ magnify (a :+ b) ((x1, y1), (x2, y2)) = nextArea : magnify (a :+ b) nextArea
                 second = first + l
 
         nextArea = ((x3, y3), (x4, y4))
-
 
 -- Similar arguments to 'render', except that this function also takes a Vec2
 -- which specifies a point to zoom in on. Returns an infinite list.

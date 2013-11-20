@@ -19,10 +19,10 @@ import Fractals
 import Vec2
 
 -- Rendering options
--- ============================================
+-- ============================================================================
 -- Number of frames to render
 numFrames :: Int
-numFrames = 20
+numFrames = 100
 
 -- The complex number to zoom in on
 target :: C
@@ -46,12 +46,13 @@ bailoutRadius = 2 ** 16
 -- between 0 and 1 for zooming in; probably nearer to 1 than 0.
 magnificationRatio :: Double
 magnificationRatio = 0.8
--- ============================================
+-- ============================================================================
 
 main :: IO ()
 main = do
     dir <- getOutputDir
     prepareOutputDir dir
+    putStrLn "Rendering..."
     mapM_ (writeToDisk dir) (zip [0,1..] images')
     where
         getOutputDir :: IO FilePath
@@ -68,7 +69,7 @@ main = do
                 imageDimensions
                 wholeMandelbrot
                 target
-                (mandelbrot maxIterations)
+                (mandelbrot bailoutRadius maxIterations)
 
         -- Same as images, but evaluated in parallel
         images' :: [Image PixelRGB8]
@@ -81,6 +82,7 @@ main = do
         writeToDisk :: FilePath -> (Int, Image PixelRGB8) -> IO ()
         writeToDisk outputDir (x, img) = do
             writePng (outputDir </> frameName x) img
+            putStrLn $ printf "Rendered: frame %d"
 
         prepareOutputDir :: FilePath -> IO ()
         prepareOutputDir = createDirectory
