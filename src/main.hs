@@ -5,6 +5,7 @@ import Codec.Picture
 import Control.Monad
 import Text.Printf
 import Control.Concurrent
+import Control.Parallel.Strategies
 import System.Directory
 import System.Exit
 
@@ -28,12 +29,17 @@ main = do
         numFrames = 200
 
         target = (-0.743643884) :+ 0.131825909
+
+        images :: [Image PixelRGB8]
         images = take numFrames $
             magnifiedRender
                 (320, 240)
                 wholeMandelbrot
                 target
                 (mandelbrot 2000)
+
+        images' :: [Image PixelRGB8]
+        images' = images `using` (parMap id)
 
         showProgress :: Int -> IO ()
         showProgress x = putStrLn $
