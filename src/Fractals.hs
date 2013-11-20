@@ -16,9 +16,10 @@ magnitudesq (a :+ b) = a*a + b*b
 
 type ColourPalette = Vector PixelRGB8
 
--- Given the intended length, make a colour palette.
-makeColourPalette :: Int -> ColourPalette
-makeColourPalette len = V.fromList $ take len $ map toColour [1,2..]
+-- Given the intended length, make a colour palette using some crazy
+-- polynomials.
+makePolyColourPalette :: Int -> ColourPalette
+makePolyColourPalette len = V.fromList $ take len $ map toColour [1,2..]
     where
         -- There's no real reasoning behind this other than it seemed to work
         -- quite well after some trial and error.
@@ -27,12 +28,23 @@ makeColourPalette len = V.fromList $ take len $ map toColour [1,2..]
             ((x^2 - 6*x)   `mod` 255)
             ((x^3 - 2*x^2) `mod` 255)
 
+makeGradientColourPalette :: PixelRGB8 -> PixelRGB8 -> Int -> ColourPalette
+makeGradientColourPalette c1 c2 len = V.fromList $ map toColour values
+    where
+        toColour = interpolateColour c1 c2
+        values   = takeWhile (<= 1) [0,step..]
+        step     = 1 / (fromIntegral len)
+
+
 defaultPalette :: ColourPalette
-defaultPalette = makeColourPalette 1000
+defaultPalette = makePolyColourPalette 10000
+    --makeGradientColourPalette
+    --(PixelRGB8 100 255 255)
+    --(PixelRGB8 50 50 100)
+    --10000
 
 toComplex :: Vec2 -> C
 toComplex (a, b) = a :+ b
-
 
 -- Given a list of iterative results, and a predicate which says whether we're
 -- done, return either a Left (), signalling that no elements satisfied the
