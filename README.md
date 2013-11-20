@@ -23,5 +23,4 @@ the program.
 A directory, 'samples', which contains output from running the program. It also
 contains an animated GIF image, produced by stitching them all together.
 
--- Harry Garrood
--- s1308568
+-- Harry Garrood (s1308568)
