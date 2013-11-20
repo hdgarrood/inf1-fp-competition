@@ -7,4 +7,4 @@ import Fractals
 
 main :: IO ()
 main = writePng "out.png" $
-    render (320, 240) ((-2, 1), (1, -1)) (mandelbrot 100)
+    render (640, 480) ((-2, 1), (1, -1)) (mandelbrot 100)

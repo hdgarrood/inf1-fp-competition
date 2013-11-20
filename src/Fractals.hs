@@ -20,10 +20,12 @@ type ColourPalette = Vector PixelRGB8
 makeColourPalette :: Int -> ColourPalette
 makeColourPalette len = V.fromList $ take len $ map toColour [1,2..]
     where
+        -- There's no real reasoning behind this other than it seemed to work
+        -- quite well after some trial and error.
         toColour x = PixelRGB8
-            (x `mod` 255)
-            (x^2 `mod` 255)
-            (x^3 `mod` 255)
+            ((x^5 - 7*x^3) `mod` 255)
+            ((x^2 - 6*x)   `mod` 255)
+            ((x^3 - 2*x^2) `mod` 255)
 
 defaultPalette :: ColourPalette
 defaultPalette = makeColourPalette 1000
