@@ -5,8 +5,6 @@ import Data.Vector (Vector)
 import qualified Data.Vector as V
 import Codec.Picture
 
-import Vec2
-
 type C = Complex Double
 
 -- Find the square of the magnitude of a complex number
@@ -30,9 +28,6 @@ makePolyColourPalette len = V.fromList $ take len $ map toColour [1,2..]
 
 defaultPalette :: ColourPalette
 defaultPalette = makePolyColourPalette 1000
-
-toComplex :: Vec2 -> C
-toComplex (a, b) = a :+ b
 
 -- Given a list of iterative results, and a predicate which says whether we're
 -- done, return either a Left (), signalling that no elements satisfied the
@@ -86,12 +81,8 @@ retrieve cp x = cp V.! x'
         x' = x `mod` V.length cp
 
 -- mandelbrot
-mandelbrot :: Double -> Int -> Vec2 -> PixelRGB8
-mandelbrot bailoutRadius maxIters vec =
-    mandelbrot' bailoutRadius maxIters $ toComplex vec
-
-mandelbrot' :: Double -> Int -> C -> PixelRGB8
-mandelbrot' bailoutRadius maxIters c = colour
+mandelbrot :: Double -> Int -> C -> PixelRGB8
+mandelbrot bailoutRadius maxIters c = colour
     where
         f       = (\z -> z^2 + c)
         series  = iterate f 0

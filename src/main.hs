@@ -17,13 +17,12 @@ import System.Exit
 import Rendering
 import Magnifying
 import Fractals
-import Vec2
 
 -- Rendering options
 -- ============================================================================
 -- Number of frames to render
 numFrames :: Int
-numFrames = 100
+numFrames = 3
 
 -- The complex number to zoom in on
 target :: C

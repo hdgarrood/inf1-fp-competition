@@ -5,32 +5,28 @@ import Codec.Picture
 
 import Rendering
 import Fractals
-import Vec2
-
-toVec2 :: C -> Vec2
-toVec2 (a :+ b) = (a, b)
 
 wholeMandelbrot :: PlotArea
-wholeMandelbrot = ((-2, 1), (1, -1))
+wholeMandelbrot = ((-2) :+ 1.5, 1 :+ (-1.5))
 
 -- Take a PlotArea and a complex number, and return an infinite list of plot
 -- areas, produced by zooming in on that number.
 magnify :: Double -> C -> PlotArea -> [PlotArea]
-magnify ratio (a :+ b) ((x1, y1), (x2, y2)) =
+magnify ratio (a :+ b) (x1 :+ y1, x2 :+ y2) =
     nextArea : magnify ratio (a :+ b) nextArea
     where
-        (x3, x4) = go x1 x2 a
-        (y3, y4) = go y1 y2 b
+        x3 :+ x4 = go x1 x2 a
+        y3 :+ y4 = go y1 y2 b
 
-        go a b c = (first, second)
+        go a b c = first :+ second
             where
                 l      = ratio * (b - a)
                 first  = c - (l * (c - a) / (b - a))
                 second = first + l
 
-        nextArea = ((x3, y3), (x4, y4))
+        nextArea = (x3 :+ y3, x4 :+ y4)
 
--- Similar arguments to 'render', except that this function also takes a Vec2
+-- Similar arguments to 'render', except that this function also takes a C
 -- which specifies a point to zoom in on. Returns an infinite list.
 magnifiedRender :: Double           -- magnification ratio
                 -> ImageDimensions  -- dimensions of produced image
