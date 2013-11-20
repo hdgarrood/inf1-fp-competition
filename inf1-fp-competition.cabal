@@ -6,7 +6,7 @@ build-type: Simple
 executable mandelbrot
     main-is: main.hs
     hs-source-dirs: src
-    ghc-options: -O2 -threaded -rtsopts -eventlog 
+    ghc-options: -O2 -threaded -rtsopts -eventlog
     -- Specify versions exactly where possible in order to match DICE
     build-depends: base,
                    time,
