@@ -92,7 +92,7 @@ of the Mandelbrot set which they're depicting.
 
 1000 colours ought to be enough. However, what if the maximum number of
 iterations is larger than this, and we try to take more colours than there are
-in our colour palette? Let's define a new function to alleviate this. If we
+in our colour palette? Let's define a new function to guard against this. If we
 just take the value modulus the number of colours we have, we'll always be ok.
 
 > retrieve :: ColourPalette -> Int -> PixelRGB8
@@ -150,8 +150,9 @@ gives us a colour.
 >         colour  = colourise palette escaped
 
 What's that function, magnitudesq? The idea is that it's easier to compute the
-square of the magnitude that the magnitude itself; we don't want to do any
-unnecessary square rooting.
+square of the magnitude than the magnitude itself. We don't want to do any
+unnecessary square rooting. This means that our function bailoutRadius actually
+gives the square of the bailout radius.
 
 > magnitudesq :: Num a => Complex a -> a
 > magnitudesq (a :+ b) = a*a + b*b
@@ -162,7 +163,7 @@ help:
 
 > type Rectangle = (C, C)
 
-These are just to make function signatures easier to read.
+The following are just to make function signatures easier to read.
 
 > type PlotArea        = Rectangle
 > type ImageDimensions = (Int, Int)
@@ -231,9 +232,10 @@ we're zooming in towards the given number.
 > 
 >         nextArea = (x3 :+ y3, x4 :+ y4)
 
-We use linear interpolation again at each stage to create a new rectangle,
-which should have a width equal to the width of the previous rectangle
-multiplied by the magnification ratio.
+At each stage, we create a new rectangle, which has a width equal to the width
+of the previous rectangle. Additionally we use linear interpolation to ensure
+that the position of the target complex number on the screen doesn't move
+around; this should give us a nice, smooth zoom.
 
 Given this, it's not difficult to implement a magnifying version of 'render'
 which returns a list of images instead of just a single one.
@@ -249,7 +251,8 @@ which returns a list of images instead of just a single one.
 >     where
 >         areas = magnify ratio z initialArea
 
-We're nearly there! There are a few more values we need to set first, though.
+We're nearly there! There are a few more values we need to decide upon first,
+though.
 
 How many frames should we render?
 
