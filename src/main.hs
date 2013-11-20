@@ -9,6 +9,7 @@ import Control.Monad
 import Text.Printf
 import Control.Concurrent
 import Control.Parallel.Strategies
+import Control.DeepSeq
 import System.FilePath
 import System.Directory
 import System.Exit
@@ -51,14 +52,15 @@ magnificationRatio = 0.8
 main :: IO ()
 main = do
     reportParallelism
+
     dir <- getOutputDir
     prepareOutputDir dir
-    putStrLn "Rendering..."
     mapM_ (writeToDisk dir) (zip [0,1..] images')
     where
         getOutputDir :: IO FilePath
-        getOutputDir = fmap (formatTime defaultTimeLocale "output/%y%m%d-%H%M%S")
-                        getCurrentTime
+        getOutputDir =
+            fmap (formatTime defaultTimeLocale "output/%y%m%d-%H%M%S")
+                getCurrentTime
 
         images :: [Image PixelRGB8]
         images = take numFrames $
@@ -71,7 +73,7 @@ main = do
 
         -- Same as images, but evaluated in parallel
         images' :: [Image PixelRGB8]
-        images' = images `using` (parList rdeepseq)
+        images' = images `using` parRnfList
 
         writeToDisk :: FilePath -> (Int, Image PixelRGB8) -> IO ()
         writeToDisk outputDir (x, img) = do
@@ -83,7 +85,20 @@ main = do
         prepareOutputDir :: FilePath -> IO ()
         prepareOutputDir = createDirectory
 
-        reportParallelism :: IO ()
-        reportParallelism = do
-                n <- getNumCapabilities
-                putStrLn $ printf "Running using %d capabilities." n
+reportParallelism :: IO ()
+reportParallelism = do
+        n <- getNumCapabilities
+        putStrLn $
+            if n == 1
+                then "Running using one core. " ++
+                     "Try adding '+RTS -N{num cores}' to the " ++
+                     "command line for more parallel computation!"
+                else printf "Running using %d cores." n
+
+parRnfList :: NFData a => Strategy [a]
+parRnfList []     = return []
+parRnfList (x:xs) = do
+    x'  <- rpar (force x)
+    xs' <- parRnfList xs
+    return $ x' : xs'
+
