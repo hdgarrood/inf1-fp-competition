@@ -26,7 +26,7 @@ makeColourPalette len = V.fromList $ take len $ map toColour [1,2..]
             (x^3 `mod` 255)
 
 defaultPalette :: ColourPalette
-defaultPalette = makeColourPalette 10000
+defaultPalette = makeColourPalette 1000
 
 toComplex :: Vec2 -> C
 toComplex (a, b) = a :+ b
