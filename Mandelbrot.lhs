@@ -44,7 +44,7 @@ black.
 
 > maxIterations :: Int
 > maxIterations = 2000
->
+
 > bailoutRadius :: Double
 > bailoutRadius = 2 ** 16
 
@@ -121,7 +121,7 @@ x2, where 'frac' is the distance along the line between them.
 
 > linearInterpolate :: RealFrac a => a -> a -> a -> a
 > linearInterpolate x1 x2 frac = x1 + (frac * (x2 - x1))
->
+
 > interpolateColour :: RealFrac a => PixelRGB8 -> PixelRGB8 -> a -> PixelRGB8
 > interpolateColour (PixelRGB8 r1 g1 b1)
 >                   (PixelRGB8 r2 g2 b2)
@@ -185,10 +185,10 @@ We'll also need these:
 
 > intTupleToC :: (Int, Int) -> C
 > intTupleToC (x, y) = fromIntegral x :+ fromIntegral y
->
+
 > imageDimensionstoRectangle :: ImageDimensions -> Rectangle
 > imageDimensionstoRectangle dims = (0 :+ 0, intTupleToC dims)
->
+
 > imageToPlane :: ImageDimensions -> PlotArea -> C -> C
 > imageToPlane dims = translateRectangle (imageDimensionstoRectangle dims)
 
