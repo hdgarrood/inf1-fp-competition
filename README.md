@@ -3,6 +3,8 @@ Down the Rabbit Hole
 
 My entry to the Inf-1 FP competition, 2013.
 
+![mandelbrot-animated-gif](samples/animated-mandelbrot.gif)
+
 Contents
 --------
 
